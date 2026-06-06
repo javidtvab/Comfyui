@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComfyUI Manager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c5cfc;
+    --accent2: #fc5c7c;
+    --text: #e8e8f0;
+    --text2: #8888aa;
+    --green: #5cfc9a;
+    --orange: #fcb45c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .auth-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { background: #9070ff; transform: translateY(-1px); }
+
+  .btn-danger {
+    background: var(--accent2);
+    color: white;
+  }
+  .btn-danger:hover { background: #ff3d60; }
+
+  .btn-success {
+    background: var(--green);
+    color: #000;
+  }
+  .btn-success:hover { background: #3dff7a; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text2);
+  }
+  .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  /* LAYOUT */
+  .app {
+    display: flex;
+    height: calc(100vh - 57px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-section {
+    padding: 8px 16px 4px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    color: var(--text2);
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(124, 92, 252, 0.1); color: var(--accent); border-left-color: var(--accent); }
+
+  .nav-icon { font-size: 16px; }
+
+  .badge {
+    margin-left: auto;
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .nav-item.active .badge { background: rgba(124,92,252,0.2); color: var(--accent); }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  /* SEARCH BAR */
+  .search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text2); }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .icon-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn.delete:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .card-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  .tag-nsfw { background: rgba(252,92,124,0.15); color: var(--accent2); }
+  .tag-cosplay { background: rgba(124,92,252,0.15); color: var(--accent); }
+  .tag-realismo { background: rgba(92,252,154,0.15); color: var(--green); }
+  .tag-anatomia { background: rgba(252,180,92,0.15); color: var(--orange); }
+  .tag-video { background: rgba(92,200,252,0.15); color: #5cc8fc; }
+  .tag-default { background: var(--surface2); color: var(--text2); }
+
+  .card-field {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .card-field span {
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .trigger-pill {
+    display: inline-block;
+    background: rgba(124,92,252,0.15);
+    border: 1px solid rgba(124,92,252,0.3);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    margin: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .trigger-pill:hover { background: rgba(124,92,252,0.3); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h2 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    z-index: 300;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; margin-bottom: 20px; }
+
+  /* COPY FEEDBACK */
+  .copied { animation: flash 0.3s ease; }
+  @keyframes flash {
+    0% { background: rgba(92,252,154,0.3); }
+    100% { background: transparent; }
+  }
+
+  /* PROMPT VIEWER */
+  .prompt-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.6;
+    word-break: break-word;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .prompt-box:hover { border-color: var(--accent); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  .sync-info {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text2);
+  }
+
+  .login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 57px);
+    gap: 16px;
+    text-align: center;
+  }
+  .login-screen h2 { font-size: 28px; font-weight: 800; }
+  .login-screen p { color: var(--text2); font-size: 14px; max-width: 400px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡ ComfyUI Manager</div>
+  <div class="auth-section">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="sync-info" id="syncInfo">Sin conectar</span>
+    <button class="btn btn-primary" id="loginBtn" onclick="handleAuth()">Conectar Google</button>
+    <button class="btn btn-ghost" id="syncBtn" onclick="syncData()" style="display:none">↑ Sincronizar</button>
+    <button class="btn btn-ghost" id="logoutBtn" onclick="handleLogout()" style="display:none">Salir</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-section">Contenido</div>
+    <div class="nav-item active" onclick="showSection('loras')" id="nav-loras">
+      <span class="nav-icon">🎛️</span> LoRAs
+      <span class="badge" id="badge-loras">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('workflows')" id="nav-workflows">
+      <span class="nav-icon">🔄</span> Workflows
+      <span class="badge" id="badge-workflows">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('personajes')" id="nav-personajes">
+      <span class="nav-icon">👤</span> Personajes
+      <span class="badge" id="badge-personajes">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('prompts')" id="nav-prompts">
+      <span class="nav-icon">📝</span> Prompts
+      <span class="badge" id="badge-prompts">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('wildcards')" id="nav-wildcards">
+      <span class="nav-icon">🎲</span> Wildcards
+      <span class="badge" id="badge-wildcards">0</span>
+    </div>
+    <div class="sidebar-section" style="margin-top:16px">Modelos</div>
+    <div class="nav-item" onclick="showSection('checkpoints')" id="nav-checkpoints">
+      <span class="nav-icon">💾</span> Checkpoints
+      <span class="badge" id="badge-checkpoints">0</span>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="login-screen" id="loginScreen">
+      <div style="font-size:64px">⚡</div>
+      <h2>ComfyUI Manager</h2>
+      <p>Gestiona tus LoRAs, workflows, personajes y prompts sincronizados con Google Sheets.</p>
+      <button class="btn btn-primary" onclick="handleAuth()" style="padding:12px 32px;font-size:14px">
+        Conectar con Google
+      </button>
+    </div>
+    <div id="appContent" style="display:none"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModalOutside(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const CLIENT_ID = '118421914696-4p2a3rvjo2cj976mpk97qbhe7lorpl5i.apps.googleusercontent.com';
+const SHEET_ID  = '1UXottOH8WZ_FDyq5mJvVE5cyqHDzUKEr-ruZwkQRVdw';
+const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
+
+const SHEETS = {
+  loras:       'LoRAs',
+  workflows:   'Workflows',
+  personajes:  'Personajes',
+  prompts:     'Prompts',
+  wildcards:   'Wildcards',
+  checkpoints: 'Checkpoints'
+};
+
+const HEADERS = {
+  loras:       ['Nombre','Trigger','Peso','Modelo Base','Categoría','Descripción','Notas'],
+  workflows:   ['Nombre','LoRAs','Tipo','Checkpoint','Descripción','Notas'],
+  personajes:  ['Nombre','Pelo','Ojos','Outfit','Fondo','Triggers','Descripción'],
+  prompts:     ['Nombre','Prefix','Main','Suffix','Seed','Tipo','Notas'],
+  wildcards:   ['Nombre','Archivo','Categoría','Contenido','Notas'],
+  checkpoints: ['Nombre','Archivo','Tipo','NSFW','Descripción','Notas']
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let tokenClient = null;
+let accessToken = null;
+let currentSection = 'loras';
+let data = { loras:[], workflows:[], personajes:[], prompts:[], wildcards:[], checkpoints:[] };
+let searchQuery = '';
+let filterCategory = '';
+
+// ============================================================
+// AUTH
+// ============================================================
+function loadGoogleAPI() {
+  const script = document.createElement('script');
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.onload = initTokenClient;
+  document.head.appendChild(script);
+}
+
+function initTokenClient() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (response) => {
+      if (response.error) { showToast('Error auth: ' + response.error, true); return; }
+      accessToken = response.access_token;
+      localStorage.setItem('gat', accessToken);
+      onAuthSuccess();
+    }
+  });
+}
+
+function handleAuth() {
+  if (!tokenClient) { loadGoogleAPI(); setTimeout(handleAuth, 1000); return; }
+  tokenClient.requestAccessToken();
+}
+
+function handleLogout() {
+  accessToken = null;
+  localStorage.removeItem('gat');
+  document.getElementById('loginBtn').style.display = '';
+  document.getElementById('syncBtn').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('statusDot').classList.remove('connected');
+  document.getElementById('syncInfo').textContent = 'Sin conectar';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
+}
+
+async function onAuthSuccess() {
+  document.getElementById('loginBtn').style.display = 'none';
+  document.getElementById('syncBtn').style.display = '';
+  document.getElementById('logoutBtn').style.display = '';
+  document.getElementById('statusDot').classList.add('connected');
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+  await ensureSheets();
+  await loadAllData();
+  showSection('loras');
+  showToast('Conectado a Google Sheets ✓');
+}
+
+// ============================================================
+// SHEETS API
+// ============================================================
+async function sheetsRequest(method, endpoint, body) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}${endpoint}`;
+  const res = await fetch(url, {
+    method,
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return res.json();
+}
+
+async function ensureSheets() {
+  document.getElementById('syncInfo').textContent = 'Preparando sheets...';
+  const info = await sheetsRequest('GET', '');
+  const existing = info.sheets ? info.sheets.map(s => s.properties.title) : [];
+  const toAdd = Object.values(SHEETS).filter(s => !existing.includes(s));
+  if (toAdd.length > 0) {
+    const requests = toAdd.map(title => ({ addSheet: { properties: { title } } }));
+    await sheetsRequest('POST', ':batchUpdate', { requests });
+    for (const section of Object.keys(SHEETS)) {
+      if (toAdd.includes(SHEETS[section])) {
+        await sheetsRequest('PUT', `/values/${SHEETS[section]}!A1:Z1?valueInputOption=RAW`,
+          { values: [HEADERS[section]] });
+      }
+    }
+  }
+}
+
+async function loadAllData() {
+  document.getElementById('syncInfo').textContent = 'Cargando datos...';
+  for (const section of Object.keys(SHEETS)) {
+    const res = await sheetsRequest('GET', `/values/${SHEETS[section]}!A:Z`);
+    const rows = res.values || [];
+    if (rows.length > 1) {
+      const headers = rows[0];
+      data[section] = rows.slice(1).map((row, idx) => {
+        const obj = { _row: idx + 2 };
+        headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+        return obj;
+      });
+    } else {
+      data[section] = [];
+    }
+  }
+  updateBadges();
+  document.getElementById('syncInfo').textContent = `Sync: ${new Date().toLocaleTimeString()}`;
+}
+
+async function syncData() {
+  await loadAllData();
+  renderSection(currentSection);
+  showToast('Datos sincronizados ✓');
+}
+
+async function addRow(section, rowData) {
+  const headers = HEADERS[section];
+  const values = [headers.map(h => rowData[h] || '')];
+  await sheetsRequest('POST', `/values/${SHEETS[section]}!A:Z:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    { values });
+  await loadAllData();
+  renderSection(section);
+  showToast('Añadido correctamente ✓');
+}
+
+async function updateRow(section, rowNum, rowData) {
+  const headers = HEADERS[section];
+  const values = [headers.map(h => rowData[h] || '')];
+  await sheetsRequest('PUT', `/values/${SHEETS[section]}!A${rowNum}:Z${rowNum}?valueInputOption=RAW`,
+    { values });
+  await loadAllData();
+  renderSection(section);
+  showToast('Actualizado ✓');
+}
+
+async function deleteRow(section, rowNum) {
+  const sheetInfo = await sheetsRequest('GET', '');
+  const sheet = sheetInfo.sheets.find(s => s.properties.title === SHEETS[section]);
+  if (!sheet) return;
+  await sheetsRequest('POST', ':batchUpdate', {
+    requests: [{
+      deleteDimension: {
+        range: { sheetId: sheet.properties.sheetId, dimension: 'ROWS', startIndex: rowNum-1, endIndex: rowNum }
+      }
+    }]
+  });
+  await loadAllData();
+  renderSection(section);
+  showToast('Eliminado ✓');
+}
+
+// ============================================================
+// UI
+// ============================================================
+function updateBadges() {
+  Object.keys(data).forEach(s => {
+    const el = document.getElementById(`badge-${s}`);
+    if (el) el.textContent = data[s].length;
+  });
+}
+
+function showSection(section) {
+  currentSection = section;
+  searchQuery = '';
+  filterCategory = '';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`nav-${section}`).classList.add('active');
+  renderSection(section);
+}
+
+function getFiltered(section) {
+  let items = [...data[section]];
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    items = items.filter(item =>
+      Object.values(item).some(v => String(v).toLowerCase().includes(q))
+    );
+  }
+  if (filterCategory) {
+    items = items.filter(item =>
+      (item['Categoría'] || '').toLowerCase() === filterCategory.toLowerCase() ||
+      (item['Tipo'] || '').toLowerCase() === filterCategory.toLowerCase()
+    );
+  }
+  return items;
+}
+
+function getTagClass(cat) {
+  const c = (cat||'').toLowerCase();
+  if (c.includes('nsfw')) return 'tag-nsfw';
+  if (c.includes('cosplay')) return 'tag-cosplay';
+  if (c.includes('reali')) return 'tag-realismo';
+  if (c.includes('anatom')) return 'tag-anatomia';
+  if (c.includes('video')) return 'tag-video';
+  return 'tag-default';
+}
+
+function copyText(text, el) {
+  navigator.clipboard.writeText(text);
+  if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
+  showToast('Copiado ✓');
+}
+
+function renderSection(section) {
+  const container = document.getElementById('appContent');
+  const items = getFiltered(section);
+  const titles = {
+    loras: 'LoRAs', workflows: 'Workflows', personajes: 'Personajes',
+    prompts: 'Prompts', wildcards: 'Wildcards', checkpoints: 'Checkpoints'
+  };
+
+  let html = `
+    <div class="search-bar">
+      <input class="search-input" type="text" placeholder="Buscar en ${titles[section]}..."
+        value="${searchQuery}" oninput="searchQuery=this.value;renderSection('${section}')">
+      <select class="filter-select" onchange="filterCategory=this.value;renderSection('${section}')">
+        <option value="">Todas las categorías</option>
+        ${getCategoryOptions(section)}
+      </select>
+      <button class="btn btn-primary" onclick="openAddModal('${section}')">+ Añadir</button>
+    </div>
+    <div class="section-header">
+      <div class="section-title">${titles[section]} <span style="color:var(--text2);font-size:14px;font-weight:400">(${items.length})</span></div>
+    </div>
+  `;
+
+  if (items.length === 0) {
+    html += `<div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>Sin resultados</h3>
+      <p>${searchQuery ? 'No se encontraron resultados para "'+searchQuery+'"' : 'Añade el primer elemento con el botón + Añadir'}</p>
+      ${!searchQuery ? `<button class="btn btn-primary" onclick="openAddModal('${section}')">+ Añadir ${titles[section].slice(0,-1)}</button>` : ''}
+    </div>`;
+  } else {
+    html += `<div class="cards-grid">`;
+    items.forEach(item => {
+      html += renderCard(section, item);
+    });
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function getCategoryOptions(section) {
+  const field = section === 'workflows' || section === 'prompts' ? 'Tipo' : 'Categoría';
+  const cats = [...new Set(data[section].map(i => i[field]).filter(Boolean))];
+  return cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function renderCard(section, item) {
+  const rowNum = item._row;
+  switch(section) {
+    case 'loras': return renderLoraCard(item, rowNum);
+    case 'workflows': return renderWorkflowCard(item, rowNum);
+    case 'personajes': return renderPersonajeCard(item, rowNum);
+    case 'prompts': return renderPromptCard(item, rowNum);
+    case 'wildcards': return renderWildcardCard(item, rowNum);
+    case 'checkpoints': return renderCheckpointCard(item, rowNum);
+  }
+  return '';
+}
+
+function renderLoraCard(item, rowNum) {
+  const triggers = (item['Trigger']||'').split(',').map(t=>t.trim()).filter(Boolean);
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">🎛️ ${item['Nombre']||'Sin nombre'}</div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick='openEditModal("loras",${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+        <button class="icon-btn delete" onclick="confirmDelete('loras',${rowNum},'${(item['Nombre']||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    ${item['Categoría'] ? `<span class="card-tag ${getTagClass(item['Categoría'])}">${item['Categoría']}</span>` : ''}
+    ${item['Modelo Base'] ? `<span class="card-tag tag-default">${item['Modelo Base']}</span>` : ''}
+    ${triggers.length > 0 ? `<div style="margin-top:10px">${triggers.map(t=>`<span class="trigger-pill" onclick='copyText("${t}")'>${t}</span>`).join('')}</div>` : ''}
+    ${item['Peso'] ? `<div class="card-field">Peso: <span>${item['Peso']}</span></div>` : ''}
+    ${item['Descripción'] ? `<div class="card-field" style="margin-top:8px">${item['Descripción']}</div>` : ''}
+    ${item['Notas'] ? `<div class="card-field" style="margin-top:4px;font-style:italic">${item['Notas']}</div>` : ''}
+  </div>`;
+}
+
+function renderWorkflowCard(item, rowNum) {
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">🔄 ${item['Nombre']||'Sin nombre'}</div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick='openEditModal("workflows",${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+        <button class="icon-btn delete" onclick="confirmDelete('workflows',${rowNum},'${(item['Nombre']||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    ${item['Tipo'] ? `<span class="card-tag ${getTagClass(item['Tipo'])}">${item['Tipo']}</span>` : ''}
+    ${item['Checkpoint'] ? `<div class="card-field">Checkpoint: <span>${item['Checkpoint']}</span></div>` : ''}
+    ${item['LoRAs'] ? `<div class="card-field">LoRAs: <span>${item['LoRAs']}</span></div>` : ''}
+    ${item['Descripción'] ? `<div class="card-field" style="margin-top:8px">${item['Descripción']}</div>` : ''}
+    ${item['Notas'] ? `<div class="card-field" style="margin-top:4px;font-style:italic">${item['Notas']}</div>` : ''}
+  </div>`;
+}
+
+function renderPersonajeCard(item, rowNum) {
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">👤 ${item['Nombre']||'Sin nombre'}</div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick='openEditModal("personajes",${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+        <button class="icon-btn delete" onclick="confirmDelete('personajes',${rowNum},'${(item['Nombre']||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    ${item['Pelo'] ? `<div class="card-field">Pelo: <span>${item['Pelo']}</span></div>` : ''}
+    ${item['Ojos'] ? `<div class="card-field">Ojos: <span>${item['Ojos']}</span></div>` : ''}
+    ${item['Outfit'] ? `<div class="card-field">Outfit: <span>${item['Outfit'].substring(0,100)}${item['Outfit'].length>100?'...':''}</span></div>` : ''}
+    ${item['Fondo'] ? `<div class="card-field">Fondo: <span>${item['Fondo']}</span></div>` : ''}
+    ${item['Triggers'] ? `<div style="margin-top:8px">${(item['Triggers']||'').split(',').map(t=>`<span class="trigger-pill" onclick='copyText("${t.trim()}")'>${t.trim()}</span>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function renderPromptCard(item, rowNum) {
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">📝 ${item['Nombre']||'Sin nombre'}</div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick='openEditModal("prompts",${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+        <button class="icon-btn delete" onclick="confirmDelete('prompts',${rowNum},'${(item['Nombre']||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    ${item['Tipo'] ? `<span class="card-tag ${getTagClass(item['Tipo'])}">${item['Tipo']}</span>` : ''}
+    ${item['Seed'] ? `<span class="card-tag tag-default">seed: ${item['Seed']}</span>` : ''}
+    ${item['Prefix'] ? `<div class="card-field">PREFIX:<div class="prompt-box" onclick='copyText(this.textContent)'>${item['Prefix']}</div></div>` : ''}
+    ${item['Main'] ? `<div class="card-field">MAIN:<div class="prompt-box" onclick='copyText(this.textContent)'>${item['Main']}</div></div>` : ''}
+    ${item['Suffix'] ? `<div class="card-field">SUFFIX:<div class="prompt-box" onclick='copyText(this.textContent)'>${item['Suffix']}</div></div>` : ''}
+  </div>`;
+}
+
+function renderWildcardCard(item, rowNum) {
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">🎲 ${item['Nombre']||'Sin nombre'}</div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick='openEditModal("wildcards",${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+        <button class="icon-btn delete" onclick="confirmDelete('wildcards',${rowNum},'${(item['Nombre']||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    ${item['Categoría'] ? `<span class="card-tag ${getTagClass(item['Categoría'])}">${item['Categoría']}</span>` : ''}
+    ${item['Archivo'] ? `<span class="card-tag tag-default">📄 ${item['Archivo']}</span>` : ''}
+    ${item['Contenido'] ? `<div class="card-field" style="margin-top:8px">
+      <div class="prompt-box" onclick='copyText(this.textContent)' style="max-height:120px;overflow-y:auto">${item['Contenido'].substring(0,300)}${item['Contenido'].length>300?'...':''}</div>
+    </div>` : ''}
+    ${item['Notas'] ? `<div class="card-field" style="margin-top:6px;font-style:italic">${item['Notas']}</div>` : ''}
+  </div>`;
+}
+
+function renderCheckpointCard(item, rowNum) {
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">💾 ${item['Nombre']||'Sin nombre'}</div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick='openEditModal("checkpoints",${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+        <button class="icon-btn delete" onclick="confirmDelete('checkpoints',${rowNum},'${(item['Nombre']||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    ${item['Tipo'] ? `<span class="card-tag ${getTagClass(item['Tipo'])}">${item['Tipo']}</span>` : ''}
+    ${item['NSFW'] === 'Sí' ? `<span class="card-tag tag-nsfw">NSFW</span>` : ''}
+    ${item['Archivo'] ? `<div class="card-field">Archivo: <span>${item['Archivo']}</span></div>` : ''}
+    ${item['Descripción'] ? `<div class="card-field" style="margin-top:8px">${item['Descripción']}</div>` : ''}
+    ${item['Notas'] ? `<div class="card-field" style="margin-top:4px;font-style:italic">${item['Notas']}</div>` : ''}
+  </div>`;
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openAddModal(section) {
+  const empty = {};
+  HEADERS[section].forEach(h => empty[h] = '');
+  openFormModal(section, empty, false);
+}
+
+function openEditModal(section, item) {
+  openFormModal(section, item, true);
+}
+
+function openFormModal(section, item, isEdit) {
+  const titles = {
+    loras:'LoRA', workflows:'Workflow', personajes:'Personaje',
+    prompts:'Prompt', wildcards:'Wildcard', checkpoints:'Checkpoint'
+  };
+  const headers = HEADERS[section];
+
+  let fields = headers.map(h => {
+    const isLong = ['Descripción','Notas','Contenido','Prefix','Main','Suffix','Outfit','LoRAs'].includes(h);
+    const val = (item[h]||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    if (isLong) {
+      return `<div class="form-group">
+        <label class="form-label">${h}</label>
+        <textarea class="form-textarea" id="field_${h}" rows="${h==='Contenido'||h==='Main'?6:3}">${item[h]||''}</textarea>
+      </div>`;
+    }
+    const isSelect = h === 'NSFW';
+    if (isSelect) {
+      return `<div class="form-group">
+        <label class="form-label">${h}</label>
+        <select class="form-select" id="field_${h}">
+          <option value="">-</option>
+          <option value="Sí" ${item[h]==='Sí'?'selected':''}>Sí</option>
+          <option value="No" ${item[h]==='No'?'selected':''}>No</option>
+        </select>
+      </div>`;
+    }
+    return `<div class="form-group">
+      <label class="form-label">${h}</label>
+      <input class="form-input" type="text" id="field_${h}" value="${val}" placeholder="${h}...">
+    </div>`;
+  });
+
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <h2>${isEdit ? 'Editar' : 'Añadir'} ${titles[section]}</h2>
+    ${fields.join('')}
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveForm('${section}',${isEdit?item._row:0})">
+        ${isEdit ? '💾 Guardar' : '+ Añadir'}
+      </button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function saveForm(section, rowNum) {
+  const headers = HEADERS[section];
+  const rowData = {};
+  headers.forEach(h => {
+    const el = document.getElementById(`field_${h}`);
+    rowData[h] = el ? el.value : '';
+  });
+  closeModal();
+  if (rowNum) {
+    updateRow(section, rowNum, rowData);
+  } else {
+    addRow(section, rowData);
+  }
+}
+
+function confirmDelete(section, rowNum, name) {
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <h2>¿Eliminar?</h2>
+    <p style="color:var(--text2);margin-bottom:20px">¿Seguro que quieres eliminar <strong style="color:var(--text)">${name}</strong>? Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" onclick="closeModal();deleteRow('${section}',${rowNum})">🗑️ Eliminar</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimeout = null;
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = isError ? 'var(--accent2)' : 'var(--green)';
+  t.style.color = isError ? 'var(--accent2)' : 'var(--green)';
+  t.style.display = 'block';
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadGoogleAPI();
+
+// Intentar restaurar sesión
+const savedToken = localStorage.getItem('gat');
+if (savedToken) {
+  accessToken = savedToken;
+  setTimeout(onAuthSuccess, 500);
+}
+</script>
+</body>
+</html>
